@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moyenne Calculator</title>
+
+<style>
+:root {
+    --bg-primary: #0a0e27;
+    --bg-secondary: #0f1629;
+    --card-bg: #141b2d;
+    --card-hover: #1a2332;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-light: rgba(99, 102, 241, 0.1);
+    --success: #10b981;
+    --danger: #ef4444;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border: #1e293b;
+    --shadow: rgba(0, 0, 0, 0.3);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: clamp(20px, 4vw, 32px);
+    box-shadow: 0 20px 60px var(--shadow);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 25px 70px var(--shadow);
+}
+
+/* Mode Switch */
+.mode-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 30px;
+    padding: 6px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+}
+
+.mode-switch button {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-switch button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.mode-switch button.active {
+    color: white;
+    transform: scale(1);
+}
+
+.mode-switch button.active::before {
+    opacity: 1;
+}
+
+.mode-switch button:not(.active):hover {
+    background: var(--accent-light);
+    color: var(--text-primary);
+}
+
+/* Module Card */
+.module {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    position: relative;
+    animation: moduleSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s ease;
+}
+
+@keyframes moduleSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.module:hover {
+    background: var(--card-hover);
+    border-color: var(--accent);
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.module-number {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.delete-btn {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--danger);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: var(--danger);
+    color: white;
+    transform: scale(1.05);
+}
+
+.input-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-wrapper label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+    background: var(--bg-secondary);
+}
+
+input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+/* Checkbox Toggle */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 16px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.checkbox-label:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.checkbox-label input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Buttons */
+.btn {
+    padding: 16px 32px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn:hover::before {
+    opacity: 1;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+    color: white;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--card-bg);
+    border-color: var(--accent);
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+/* Result Card */
+.result {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
+    border: 2px solid var(--accent);
+    padding: 32px;
+    border-radius: 20px;
+    text-align: center;
+    animation: resultPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
+}
+
+@keyframes resultPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.result-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.result-value {
+    font-size: clamp(36px, 8vw, 56px);
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+}
+
+.result-status {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 12px;
+}
+
+.result-status.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.result-status.failure {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Loading Animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .input-group {
+        grid-template-columns: 1fr;
+    }
+
+    .mode-switch {
+        gap: 8px;
+    }
+
+    .mode-switch button {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .module-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📊 Moyenne Calculator</h1>
+        <p>Calculate your semester and module averages with ease</p>
+    </div>
+
+    <div class="card">
+        <div class="mode-switch">
+            <button id="singleBtn" class="active" onclick="setMode('single')">
+                📝 Single Module
+            </button>
+            <button id="semesterBtn" onclick="setMode('semester')">
+                📚 Full Semester
+            </button>
+        </div>
+
+        <div id="modules"></div>
+
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="addModule()">
+                ➕ Add Module
+            </button>
+            <button class="btn btn-primary" onclick="calculate()">
+                🧮 Calculate Average
+            </button>
+        </div>
+    </div>
+
+    <div id="result" class="hidden"></div>
+</div>
+
+<script>
+let mode = "single";
+let moduleCount = 0;
+
+function setMode(m) {
+    mode = m;
+    moduleCount = 0;
+    document.getElementById("modules").innerHTML = "";
+    document.getElementById("result").classList.add("hidden");
+
+    document.getElementById("singleBtn").classList.toggle("active", m === "single");
+    document.getElementById("semesterBtn").classList.toggle("active", m === "semester");
+
+    addModule();
+}
+
+function addModule() {
+    if (mode === "single") {
+        document.getElementById("modules").innerHTML = "";
+        moduleCount = 0;
+    }
+
+    moduleCount++;
+    const m = document.createElement("div");
+    m.className = "module";
+    m.dataset.id = moduleCount;
+
+    const deleteButton = mode === "semester" 
+        ? `<button class="delete-btn" onclick="deleteModule(this)">🗑️ Delete</button>` 
+        : '';
+
+    m.innerHTML = `
+        <div class="module-header">
+            <div class="module-number">Module ${moduleCount}</div>
+            ${deleteButton}
+        </div>
+
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label>Module Name</label>
+                <input type="text" class="module-name" placeholder="e.g., Mathematics">
+            </div>
+            <div class="input-wrapper">
+                <label>Coefficient</label>
+                <input type="number" class="coef" placeholder="1, 2, 3..." min="1" step="1">
+            </div>
+            <div class="input-wrapper">
+                <label>Exam Grade (/20)</label>
+                <input type="number" class="exam" placeholder="0-20" min="0" max="20" step="0.25">
+            </div>
+            <div class="input-wrapper weight hidden">
+                <label>Weight Distribution</label>
+                <select class="weight-select">
+                    <option value="60">60% Exam / 40% CC</option>
+                    <option value="50">50% Exam / 50% CC</option>
+                    <option value="100">100% Exam Only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="checkbox-group">
+            <label class="checkbox-label">
+                <input type="checkbox" class="tdCheck">
+                <span>TD Grade</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" class="tpCheck">
+                <span>TP Grade</span>
+            </label>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+            <div class="input-wrapper hidden td-wrapper">
+                <label>TD Grade (/20)</label>
+                <input type="number" class="tdNote" placeholder="0-20" min="0" max="20" step="0.25">
+            </div>
+            <div class="input-wrapper hidden tp-wrapper">
+                <label>TP Grade (/20)</label>
+                <input type="number" class="tpNote" placeholder="0-20" min="0" max="20" step="0.25">
+            </div>
+        </div>
+    `;
+
+    const coef = m.querySelector(".coef");
+    const weightWrapper = m.querySelector(".weight");
+
+    coef.oninput = () => {
+        const isCoef1 = parseFloat(coef.value) === 1;
+        weightWrapper.classList.toggle("hidden", !isCoef1);
+    };
+
+    m.querySelector(".tdCheck").onchange = e => {
+        m.querySelector(".td-wrapper").classList.toggle("hidden", !e.target.checked);
+    };
+
+    m.querySelector(".tpCheck").onchange = e => {
+        m.querySelector(".tp-wrapper").classList.toggle("hidden", !e.target.checked);
+    };
+
+    document.getElementById("modules").appendChild(m);
+}
+
+function deleteModule(btn) {
+    const module = btn.closest(".module");
+    module.style.animation = "moduleSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) reverse";
+    setTimeout(() => module.remove(), 300);
+}
+
+function calculate() {
+    const mods = document.querySelectorAll(".module");
+    
+    if (mods.length === 0) {
+        showError("Please add at least one module!");
+        return;
+    }
+
+    let total = 0, coefSum = 0;
+    let hasError = false;
+
+    mods.forEach(m => {
+        const coef = parseFloat(m.querySelector(".coef").value);
+        const exam = parseFloat(m.querySelector(".exam").value);
+
+        if (!coef || !exam) {
+            hasError = true;
+            return;
+        }
+
+        const weight = coef === 1 
+            ? parseFloat(m.querySelector(".weight-select").value) 
+            : 60;
+
+        const tdValue = m.querySelector(".tdNote").value;
+        const tpValue = m.querySelector(".tpNote").value;
+
+        let cc = 0;
+        if (tdValue && tpValue) {
+            cc = (parseFloat(tdValue) + parseFloat(tpValue)) / 2;
+        } else if (tdValue) {
+            cc = parseFloat(tdValue);
+        } else if (tpValue) {
+            cc = parseFloat(tpValue);
+        }
+
+        let avg;
+        if (weight === 100) {
+            avg = exam;
+        } else if (weight === 50) {
+            avg = 0.5 * exam + 0.5 * cc;
+        } else {
+            avg = 0.6 * exam + 0.4 * cc;
+        }
+
+        total += avg * coef;
+        coefSum += coef;
+    });
+
+    if (hasError) {
+        showError("Please fill in all required fields (Coefficient and Exam)!");
+        return;
+    }
+
+    const average = total / coefSum;
+    showResult(average);
+}
+
+function showResult(average) {
+    const res = document.getElementById("result");
+    res.classList.remove("hidden");
+    
+    const isPassing = average >= 10;
+    const statusClass = isPassing ? "success" : "failure";
+    const statusIcon = isPassing ? "✅" : "❌";
+    const statusText = isPassing 
+        ? "Excellent! You passed!" 
+        : "Keep working hard for next semester!";
+
+    if (mode === "single") {
+        res.innerHTML = `
+            <div class="result">
+                <div class="result-label">Module Average</div>
+                <div class="result-value">${average.toFixed(2)}/20</div>
+                <div class="result-status ${statusClass}">
+                    ${statusIcon} ${statusText}
+                </div>
+            </div>
+        `;
+    } else {
+        res.innerHTML = `
+            <div class="result">
+                <div class="result-label">Semester Average</div>
+                <div class="result-value">${average.toFixed(2)}/20</div>
+                <div class="result-status ${statusClass}">
+                    ${statusIcon} ${statusText}
+                </div>
+            </div>
+        `;
+    }
+
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showError(message) {
+    const res = document.getElementById("result");
+    res.classList.remove("hidden");
+    res.innerHTML = `
+        <div class="result" style="border-color: var(--danger);">
+            <div class="result-label">Error</div>
+            <div style="color: var(--danger); font-size: 18px; font-weight: 600;">
+                ⚠️ ${message}
+            </div>
+        </div>
+    `;
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Initialize with single module mode
+setMode("single");
+</script>
+
+</body>
+</html>
